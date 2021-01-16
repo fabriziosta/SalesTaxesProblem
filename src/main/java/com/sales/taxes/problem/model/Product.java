@@ -10,7 +10,7 @@ public class Product {
 	private double amountWithoutTaxes;
 	private double totalAmount;
 	
-	private double totalTaxes;
+	private double totalTaxes = 0;
 	
 	private boolean isBasicTaxApplicable;
 	private boolean isImportDutyTaxApplicable;
