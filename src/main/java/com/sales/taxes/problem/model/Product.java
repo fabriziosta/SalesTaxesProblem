@@ -6,8 +6,12 @@ import lombok.Data;
 public class Product {
 	private String description;
 	private int quantity;
+	
 	private double amountWithoutTaxes;
 	private double totalAmount;
+	
+	private double totalTaxes;
+	
 	private boolean isBasicTaxApplicable;
 	private boolean isImportDutyTaxApplicable;
 }

@@ -8,5 +8,6 @@ import lombok.Data;
 public class Receipt {
 
 	private List<Product> productList;
+	private double totalReceiptAmount;
 	
 }
