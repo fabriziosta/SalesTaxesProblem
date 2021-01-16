@@ -1,43 +1,61 @@
 package com.sales.taxes.problem.service;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 import com.sales.taxes.problem.exception.ReadFileException;
 import com.sales.taxes.problem.model.Product;
+import com.sales.taxes.problem.model.Receipt;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class TaxesService {
 	private static final float BASIC_TAX = 0.1F;
 	private static final float IMPORT_DUTY_TAX = 0.05F;
 
 	public static boolean isBasicTaxApplicable(String description) throws IOException {
-		boolean result = false;
+		boolean isTaxExempt = false;
+		
+		Path folder = Paths.get("./src/main/resources/keywords");
+		
+		List<Path> keywordsFiles = Files.list(folder).collect(Collectors.toList());
 
-		Path foodKeywords = Paths.get("./src/main/resources/taxExemptionFoodKeywords");
-		Path genericKeywords = Paths.get("./src/main/resources/taxExemptionGenericKeywords");
+		if (keywordsFiles.isEmpty())
+			throw new ReadFileException("Keywords files not found!");
 
-		if (Files.notExists(foodKeywords, LinkOption.NOFOLLOW_LINKS)
-				|| Files.notExists(genericKeywords, LinkOption.NOFOLLOW_LINKS))
-			throw new ReadFileException("Keywords not found!");
-
-		result = Files.readAllLines(genericKeywords).parallelStream().filter(x -> description.contains(x))
-				.map(x -> true).findFirst().get();
-
-		if (result == false)
-			result = Files.readAllLines(foodKeywords).parallelStream().filter(x -> description.contains(x))
-					.map(x -> true).findFirst().get();
-
-		return result;
+		for(Path fileWithKeywords : keywordsFiles){
+			Optional<Boolean> found = Files.readAllLines(fileWithKeywords, StandardCharsets.UTF_8)
+				.parallelStream()
+				.filter(x -> description.contains(x))
+				.map(x -> true)
+				.findAny();
+			
+			if(found.isPresent()) {
+				isTaxExempt = true;
+				break;
+			}
+		}
+		
+		return !isTaxExempt;
 	}
 
 	public static boolean isImportDutyTaxApplicable(String description) {
 		return description.contains("imported");
+	}
+	
+	public static void calculateTotalReceiptTaxesAndAmount(Receipt receipt) {
+		receipt.getProductList().parallelStream().forEach(x -> {
+			calculateTotalProductAmount(x);
+		});
+		
+		receipt.getProductList().stream().forEach(x -> {
+			receipt.setTotalTaxes(receipt.getTotalTaxes() + x.getTotalTaxes());
+			receipt.setTotalReceiptAmount(receipt.getTotalReceiptAmount() + x.getTotalAmount());
+		});
 	}
 
 	public static void calculateTotalProductAmount(Product product) {
@@ -50,10 +68,10 @@ public class TaxesService {
 		else if (product.isBasicTaxApplicable())
 			totalTaxes = product.getAmountWithoutTaxes() * BASIC_TAX;
 
-		log.info("Taxes for {} are {} - ({} rounded)", product, totalTaxes, roundUp(totalTaxes));
+		System.out.println("Taxes for "+product+" are "+totalTaxes+" - ("+roundUp(totalTaxes)+" rounded)");
 		product.setTotalTaxes(totalTaxes);
 		product.setTotalAmount(product.getAmountWithoutTaxes() + totalTaxes);
-		log.info("Total amount is {} ({} rounded)", product.getTotalAmount(), roundUp(product.getTotalAmount()));
+		System.out.println("Total amount is "+product.getTotalAmount()+" ("+roundUp(product.getTotalAmount())+" rounded)");
 	}
 	
 	public static Double roundUp(double d) {

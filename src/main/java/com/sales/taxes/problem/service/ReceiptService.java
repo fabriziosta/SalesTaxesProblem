@@ -13,9 +13,6 @@ import com.sales.taxes.problem.exception.ReadFileException;
 import com.sales.taxes.problem.model.Product;
 import com.sales.taxes.problem.model.Receipt;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 public class ReceiptService {
 	
 	public static List<Receipt> readInput() throws IOException{
@@ -26,44 +23,46 @@ public class ReceiptService {
 		if(Files.notExists(path, LinkOption.NOFOLLOW_LINKS))
 			throw new ReadFileException("Input file does not exist!");
 		
-		Files.readAllLines(path)
-			.stream()
-			.forEach((String line) -> {
-				Receipt receipt = new Receipt();
-				
-				if("".equals(line.trim())) {
-					
-					if(!receipt.getProductList().isEmpty())
-						receiptsList.add(receipt);
-					receipt = new Receipt();
-				} else
-					receipt.getProductList().add(createProduct(line));
-		});
+		
+		List<String> allLines = Files.readAllLines(path);
+		
+		Receipt receipt = new Receipt();
+		for(String line : allLines){
+			
+			if(!"".equals(line.trim()))
+				receipt.getProductList().add(createProductFromListings(line));
+			else {
+				receiptsList.add(receipt);
+				receipt = new Receipt();
+			}
+			
+		}
+		receiptsList.add(receipt);
 		return receiptsList;
 	}
 	
-	public static Product createProduct(String input) {
+	private static Product createProductFromListings(String input) {
 		Product product = new Product();
 		
 		try {
-			String quantity = input.split(" ")[0];
+			String trimmedInput = new String(input);
+			String quantity = trimmedInput.split(" ")[0];
 			product.setQuantity(Integer.valueOf(quantity));
 			
-			input = input.substring(quantity.length()).replace(" at",":");
+			trimmedInput = trimmedInput.substring(quantity.length()).replace(" at",":");
 			
-			String description = input.split(":")[0];
+			String description = trimmedInput.split(":")[0];
 			product.setDescription(description + ":");
 			
-			String price = input.split(":")[1].trim();
+			String price = trimmedInput.split(":")[1].trim();
 			product.setAmountWithoutTaxes(Double.valueOf(price));
 			
 			product.setImportDutyTaxApplicable(TaxesService.isImportDutyTaxApplicable(description));
 			product.setBasicTaxApplicable(TaxesService.isBasicTaxApplicable(description));
-		
 		} catch (Exception e) {
+			e.printStackTrace();
 			throw new CreateProductException("Creating product failed with input: '" + input + "'");
 		}
-		log.info("{}", product);
 		return product;
 	}
 
