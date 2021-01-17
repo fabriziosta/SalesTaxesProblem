@@ -16,10 +16,10 @@ import com.sales.taxes.problem.model.Receipt;
 public class ReceiptService {
 	private ReceiptService() {}
 	
-	public static List<Receipt> readInput() throws IOException {
+	public static List<Receipt> readInput(String source) throws IOException {
 		List<Receipt> receiptsList = new ArrayList<>();
 		
-		Path path = Paths.get("./src/main/resources/inputFile");
+		Path path = Paths.get(source);
 		
 		if(Files.notExists(path, LinkOption.NOFOLLOW_LINKS))
 			throw new ReadFileException("Input file does not exist!");
