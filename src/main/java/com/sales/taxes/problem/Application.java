@@ -21,20 +21,20 @@ public class Application {
 	public static void main(String[] args) throws IOException {
 		long total = System.currentTimeMillis();
 		
-		LOGGER.log(Level.FINE, "Step 0 - Finding Input file...\n");
+		LOGGER.log(Level.FINE, "Finding Input file...\n");
 		String inputFile = retrieveInputFile(args);
 
-		LOGGER.log(Level.FINE, "Step 1 - Reading listings...\n");
+		LOGGER.log(Level.FINE, "Reading listings...\n");
 		List<Receipt> receiptsList =  ReceiptService.readInput(inputFile);
 
-		LOGGER.log(Level.FINE, "Step 2 - Applying taxes...\n");
+		LOGGER.log(Level.FINE, "Applying taxes...\n");
 		receiptsList.stream().forEach(TaxesService::calculateTotalReceiptTaxesAndAmount);
 		
-		LOGGER.log(Level.FINE, "Step 3 - Writing Output\n");
+		LOGGER.log(Level.FINE, "Writing Output\n");
 		SalesService.writeOutputAsLogs(receiptsList);
 		SalesService.writeOutputAsFile(receiptsList, OUTPUT_FILE);
 		
-		LOGGER.log(Level.FINE, "END - Total execution time: {0} ms", (System.currentTimeMillis() - total));
+		LOGGER.log(Level.FINE, "Total execution time: {0} ms", (System.currentTimeMillis() - total));
 	}
 
 	private static String retrieveInputFile(String[] args) {
@@ -45,9 +45,8 @@ public class Application {
 			Scanner scanner = new Scanner(System.in);
 
 			while(true) {
-				System.out.println("Give me a valid inputFile path:");
+				System.out.print("Give me a valid inputFile path:");
 				inputFile = scanner.nextLine();
-				System.out.println(inputFile);
 				if(inputFile != null && !"".equals(inputFile) && Files.exists(Paths.get(inputFile), LinkOption.NOFOLLOW_LINKS))
 					break;
 			}

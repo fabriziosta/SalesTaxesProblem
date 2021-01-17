@@ -2,14 +2,11 @@ package com.sales.taxes.problem.service;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.sales.taxes.problem.exception.CreateProductException;
-import com.sales.taxes.problem.exception.ReadFileException;
 import com.sales.taxes.problem.model.Product;
 import com.sales.taxes.problem.model.Receipt;
 
@@ -18,13 +15,7 @@ public class ReceiptService {
 	
 	public static List<Receipt> readInput(String source) throws IOException {
 		List<Receipt> receiptsList = new ArrayList<>();
-		
-		Path path = Paths.get(source);
-		
-		if(Files.notExists(path, LinkOption.NOFOLLOW_LINKS))
-			throw new ReadFileException("Input file does not exist!");
-		
-		List<String> allLines = Files.readAllLines(path);
+		List<String> allLines = Files.readAllLines(Paths.get(source));
 		
 		Receipt receipt = new Receipt();
 		for(String line : allLines){
