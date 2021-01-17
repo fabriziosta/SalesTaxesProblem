@@ -29,9 +29,14 @@ class SalesServiceTest {
 	void writeOutputAsFile_Ok() throws IOException {
 		String pathFile = "./mock";
 		Path path = Paths.get(pathFile);
-		
 		SalesService.writeOutputAsFile(buildReceiptList(), pathFile);
-		assertTrue(Files.exists(path, LinkOption.NOFOLLOW_LINKS));
+		
+		boolean result = Files.exists(path, LinkOption.NOFOLLOW_LINKS);
+		
+		if(result)
+			Files.delete(path);
+		
+		assertTrue(result);
 	}
 	
 	private List<Receipt> buildReceiptList() {
@@ -44,7 +49,7 @@ class SalesServiceTest {
 		product.setBasicTaxApplicable(false);
 		product.setImportDutyTaxApplicable(false);
 		product.setAmountWithoutTaxes(7.99);
-		receipt.getProductList().set(0, product);
+		receipt.getProductList().add(0, product);
 		receiptsList.add(receipt);
 		return receiptsList;
 	}

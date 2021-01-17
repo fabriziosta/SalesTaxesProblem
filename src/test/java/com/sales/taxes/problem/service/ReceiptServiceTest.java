@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +60,7 @@ class ReceiptServiceTest {
 	}
 	
 	@Test
-	void readInput_Ok() throws IOException {
+	void readInput_Ok() throws IOException, URISyntaxException {
 		List<String> allLines = new ArrayList<>();
 		allLines.add("1 imported bottle of perfume at 27.99");
 		allLines.add("");

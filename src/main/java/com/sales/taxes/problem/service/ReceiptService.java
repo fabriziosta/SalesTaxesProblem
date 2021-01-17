@@ -59,7 +59,8 @@ public class ReceiptService {
 			product.setImportDutyTaxApplicable(TaxesService.isImportDutyTaxApplicable(description));
 			product.setBasicTaxApplicable(TaxesService.isBasicTaxApplicable(description));
 		} catch (Exception e) {
-			throw new CreateProductException("Creating product failed with input: '" + input + "'");
+			e.printStackTrace();
+			throw new CreateProductException("Creating product failed with input: '" + input + "' ");
 		}
 		return product;
 	}

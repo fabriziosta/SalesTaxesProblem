@@ -1,7 +1,6 @@
 package com.sales.taxes.problem.service;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,7 +11,6 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.sales.taxes.problem.exception.ReadFileException;
 import com.sales.taxes.problem.model.Product;
 import com.sales.taxes.problem.model.Receipt;
 
@@ -30,13 +28,11 @@ public class TaxesService {
 		try(Stream<Path> streamPath = Files.list(folder)){
 			List<Path> keywordsFiles = streamPath.collect(Collectors.toList());
 
-			if (keywordsFiles.isEmpty())
-				throw new ReadFileException("Keywords files not found!");
-	
 			for(Path fileWithKeywords : keywordsFiles){
-				Optional<Boolean> found = Files.readAllLines(fileWithKeywords, StandardCharsets.UTF_8)
+				Optional<Boolean> found = Files
+					.readAllLines(fileWithKeywords)
 					.parallelStream()
-					.filter(description::contains)
+					.filter(z -> description.toLowerCase().contains(z.toLowerCase()))
 					.map(x -> true)
 					.findAny();
 				
