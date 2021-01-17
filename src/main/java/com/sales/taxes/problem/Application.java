@@ -19,7 +19,7 @@ public class Application {
 		long total = System.currentTimeMillis();
 		
 		String inputFile;
-		if(args[0] != null && !"".equals(args[0]))
+		if(args.length > 0)
 			inputFile = args[0];
 		else
 			inputFile = INPUT_FILE;
