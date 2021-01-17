@@ -7,7 +7,6 @@ import lombok.Data;
 
 @Data
 public class Receipt {
-
 	private List<Product> productList;
 	private double totalReceiptAmount = 0;
 	private double totalTaxes = 0;
@@ -17,5 +16,4 @@ public class Receipt {
 			this.productList = new ArrayList<>();
 		return this.productList;
 	}
-	
 }

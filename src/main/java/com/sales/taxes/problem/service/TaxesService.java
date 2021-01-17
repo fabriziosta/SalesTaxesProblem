@@ -7,13 +7,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import com.sales.taxes.problem.exception.ReadFileException;
 import com.sales.taxes.problem.model.Product;
 import com.sales.taxes.problem.model.Receipt;
 
 public class TaxesService {
+	private static final Logger LOGGER = Logger.getLogger( TaxesService.class.getName() );
+	private TaxesService() {}
 	private static final float BASIC_TAX = 0.1F;
 	private static final float IMPORT_DUTY_TAX = 0.05F;
 
@@ -22,24 +27,25 @@ public class TaxesService {
 		
 		Path folder = Paths.get("./src/main/resources/keywords");
 		
-		List<Path> keywordsFiles = Files.list(folder).collect(Collectors.toList());
+		try(Stream<Path> streamPath = Files.list(folder)){
+			List<Path> keywordsFiles = streamPath.collect(Collectors.toList());
 
-		if (keywordsFiles.isEmpty())
-			throw new ReadFileException("Keywords files not found!");
-
-		for(Path fileWithKeywords : keywordsFiles){
-			Optional<Boolean> found = Files.readAllLines(fileWithKeywords, StandardCharsets.UTF_8)
-				.parallelStream()
-				.filter(x -> description.contains(x))
-				.map(x -> true)
-				.findAny();
-			
-			if(found.isPresent()) {
-				isTaxExempt = true;
-				break;
+			if (keywordsFiles.isEmpty())
+				throw new ReadFileException("Keywords files not found!");
+	
+			for(Path fileWithKeywords : keywordsFiles){
+				Optional<Boolean> found = Files.readAllLines(fileWithKeywords, StandardCharsets.UTF_8)
+					.parallelStream()
+					.filter(description::contains)
+					.map(x -> true)
+					.findAny();
+				
+				if(found.isPresent()) {
+					isTaxExempt = true;
+					break;
+				}
 			}
 		}
-		
 		return !isTaxExempt;
 	}
 
@@ -48,9 +54,7 @@ public class TaxesService {
 	}
 	
 	public static void calculateTotalReceiptTaxesAndAmount(Receipt receipt) {
-		receipt.getProductList().parallelStream().forEach(x -> {
-			calculateTotalProductAmount(x);
-		});
+		receipt.getProductList().parallelStream().forEach(TaxesService::calculateTotalProductAmount);
 		
 		receipt.getProductList().stream().forEach(x -> {
 			receipt.setTotalTaxes(receipt.getTotalTaxes() + x.getTotalTaxes());
@@ -68,13 +72,17 @@ public class TaxesService {
 		else if (product.isBasicTaxApplicable())
 			totalTaxes = product.getAmountWithoutTaxes() * BASIC_TAX;
 
-		System.out.println("Taxes for "+product+" are "+totalTaxes+" - ("+roundUp(totalTaxes)+" rounded)");
-		product.setTotalTaxes(totalTaxes);
-		product.setTotalAmount(product.getAmountWithoutTaxes() + totalTaxes);
-		System.out.println("Total amount is "+product.getTotalAmount()+" ("+roundUp(product.getTotalAmount())+" rounded)");
+		product.setTotalTaxes(roundUpToNearest005(totalTaxes));
+		product.setTotalAmount(roundUpToNearest005((product.getAmountWithoutTaxes() * product.getQuantity()) + totalTaxes));
 	}
 	
-	public static Double roundUp(double d) {
-		return Math.round(d * 20) / 20.0;
+	public static Double roundUpToNearest005(double d) {
+		double result = d;
+
+		if(!String.format("%.2f", d).endsWith("9") && !String.format("%.2f", d).endsWith("0"))
+			result = Math.ceil(d /  0.05) *  0.05;
+		
+		LOGGER.log(Level.FINE, "Price: {0} - Rounded: {1}", new Object[] {d, result});
+		return result;
 	}
 }
